@@ -5,8 +5,8 @@ $host = "mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com";
 $port = 12495;
 $db   = "defaultdb";
 $user = "avnadmin";
-$pass = getenv("DB_PASSWORD");
-echo getenv("DB_PASSWORD");
+$pass = getenv("qabws");
+echo getenv("qabws");
 exit;
 try {
     $conn = new PDO(
