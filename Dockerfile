@@ -1,11 +1,13 @@
 FROM php:8.2-apache
 
+# تثبيت إضافات MySQL
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
+# نسخ الملفات للسيرفر
 COPY . /var/www/html/
 
-EXPOSE 10000
+# تفعيل Apache على المنفذ الافتراضي
+EXPOSE 80
 
-RUN sed -i 's/80/10000/g' /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
-
+# تشغيل Apache
 CMD ["apache2-foreground"]
