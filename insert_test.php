@@ -2,7 +2,10 @@
 header("Content-Type: application/json");
 
 $conn = new PDO(
-  "mysql:host=HOST;port=PORT;dbname=defaultdb;charset=utf8mb4",
+  "mysql:host="mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com";
+  port="12495";
+  dbname=defaultdb;
+  charset=utf8mb4",
   "avnadmin",
   getenv("DB_PASSWORD")
 );
