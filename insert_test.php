@@ -1,69 +1,57 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *"); // للسماح بالطلبات من Flutter
 
 try {
-    // يفضل استخدام متغيرات البيئة أو ملف إعدادات خارجي
-    $host = "mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com";
-    $port = "12495";
-    $dbname = "defaultdb";
-    $user = "avnadmin";
-    $pass = getenv("DB_PASSWORD") ?: "YOUR_FALLBACK_PASSWORD"; // تأكد من ضبط متغير البيئة
-
+    // 1. الاتصال بقاعدة البيانات
     $conn = new PDO(
-        "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $pass,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]
+        "mysql:host=mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com;port=12495;dbname=defaultdb;charset=utf8mb4",
+        "avnadmin",
+        getenv("DB_PASSWORD"),
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 
-    // استقبال البيانات وتنظيفها
-    $name     = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-    $email    = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-    $phn      = filter_input(INPUT_POST, 'phn', FILTER_SANITIZE_STRING);
-    $password = $_POST['password'] ?? '';
+    // 2. استلام وتنظيف البيانات
+    $name     = trim($_POST['name'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $phn      = trim($_POST['phn'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-    // التحقق من الحقول الإلزامية
-    if (!$name || !$email || empty($password)) {
-        throw new Exception("جميع الحقول مطلوبة، ويرجى التأكد من صحة البريد الإلكتروني.");
+    // 3. التحقق من المدخلات
+    if (empty($name) || empty($email) || empty($password)) {
+        throw new Exception("جميع الحقول المطلوبة يجب ملؤها");
     }
 
-    // التحقق من تكرار البريد الإلكتروني
-    $check = $conn->prepare("SELECT id_users FROM users WHERE email = ? LIMIT 1");
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("صيغة البريد الإلكتروني غير صحيحة");
+    }
+
+    // 4. منع تكرار البريد الإلكتروني
+    $check = $conn->prepare("SELECT id_users FROM users WHERE email = ?");
     $check->execute([$email]);
+
     if ($check->fetch()) {
-        throw new Exception("البريد الإلكتروني مسجل مسبقاً.");
+        throw new Exception("البريد الإلكتروني مسجل مسبقاً");
     }
 
-    // تشفير كلمة المرور
+    // 5. تشفير كلمة المرور 🛡️
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // عملية الإدخال
+    // 6. عملية الإدخال
     $stmt = $conn->prepare("INSERT INTO users (name, email, phn, password) VALUES (?, ?, ?, ?)");
     $stmt->execute([$name, $email, $phn, $hashedPassword]);
 
     echo json_encode([
-        "status" => true,
-        "message" => "تم إنشاء الحساب بنجاح ✨"
+        "status"  => true,
+        "message" => "تم إنشاء الحساب بنجاح"
     ]);
 
-} catch (Exception $e) {
-    // طباعة رسالة خطأ صديقة للمستخدم
-    http_response_code(400);
-    echo json_encode([
-        "status" => false,
-        "error" => $e->getMessage()
-    ]);
 } catch (PDOException $e) {
-    // أخطاء قاعدة البيانات - لا نطبع $e->getMessage() في الإنتاج الفعلي للأمان
+    // خطأ في قاعدة البيانات
     http_response_code(500);
-    echo json_encode([
-        "status" => false,
-        "error" => "حدث خطأ داخلي في الخادم، يرجى المحاولة لاحقاً."
-    ]);
+    echo json_encode(["status" => false, "error" => "خطأ في قاعدة البيانات: " . $e->getMessage()]);
+} catch (Exception $e) {
+    // أخطاء منطقية (مثل البريد المتكرر أو الحقول الفارغة)
+    http_response_code(400);
+    echo json_encode(["status" => false, "error" => $e->getMessage()]);
 }
 ?>
