@@ -2,39 +2,29 @@
 
 header("Content-Type: application/json; charset=utf8mb4");
 
-// إعدادات قاعدة البيانات
 $host = "sql304.infinityfree.com";
+$db   = "if0_40839769_info39769";
 $user = "if0_40839769";
 $pass = "PIdBUzww9FqCAs";
-$db   = "if0_40839769_info39769";
 
-// إنشاء الاتصال
-$conn = new mysqli($host, $user, $pass, $db);
+try {
+    $conn = new PDO(
+        "mysql:host=$host;dbname=$db;charset=utf8mb4",
+        $user,
+        $pass
+    );
 
-// التحقق من الخطأ
-if ($conn->connect_error) {
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+} catch (PDOException $e) {
     http_response_code(500);
 
     echo json_encode([
         "status" => false,
         "message" => "Database connection failed",
-        "error" => $conn->connect_error
+        "error" => $e->getMessage()
     ]);
 
     exit();
 }
-
-// ضبط الترميز
-if (!$conn->set_charset("utf8mb4")) {
-    http_response_code(500);
-
-    echo json_encode([
-        "status" => false,
-        "message" => "Charset error",
-        "error" => $conn->error
-    ]);
-
-    exit();
-}
-
 ?>
