@@ -3,7 +3,7 @@ $host = "mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com";
 $port = "12495";
 $db   = "defaultdb";
 $user = "avnadmin";
-$pass = "YOUR_PASSWORD";
+$pass = getenv("qabws");
 
 try {
     $conn = new PDO(
