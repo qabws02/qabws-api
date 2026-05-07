@@ -1,12 +1,11 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
-# تثبيت MySQL extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-WORKDIR /app
-
-COPY . .
+COPY . /var/www/html/
 
 EXPOSE 10000
 
-CMD ["php", "-S", "0.0.0.0:10000"]
+RUN sed -i 's/80/10000/g' /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
+
+CMD ["apache2-foreground"]
