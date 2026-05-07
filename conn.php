@@ -6,8 +6,8 @@ $port = 12495;
 $db   = "defaultdb";
 $user = "avnadmin";
 $pass = getenv("qabws");
-echo getenv("qabws");
-exit;
+
+
 try {
     $conn = new PDO(
         "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4",
