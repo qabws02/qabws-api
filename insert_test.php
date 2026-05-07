@@ -3,38 +3,53 @@ header("Content-Type: application/json");
 
 try {
 
-    // الاتصال بقاعدة البيانات
     $conn = new PDO(
         "mysql:host=mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com;port=12495;dbname=defaultdb;charset=utf8mb4",
         "avnadmin",
         getenv("DB_PASSWORD"),
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 
-    // بيانات من Flutter أو Postman
     $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
     $phn = $_POST['phn'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    // إدخال البيانات
-    $sql = "INSERT INTO users (name, email, phn, password)
-            VALUES (?, ?, ?, ?)";
+    if (empty($email) || empty($name)) {
+        echo json_encode([
+            "status" => false,
+            "error" => "Missing required fields"
+        ]);
+        exit;
+    }
 
-    $stmt = $conn->prepare($sql);
+    // check duplicate email
+    $check = $conn->prepare("SELECT id_users FROM users WHERE email = ?");
+    $check->execute([$email]);
+
+    if ($check->rowCount() > 0) {
+        echo json_encode([
+            "status" => false,
+            "error" => "Email already exists"
+        ]);
+        exit;
+    }
+
+    // insert
+    $stmt = $conn->prepare("
+        INSERT INTO users (name, email, phn, password)
+        VALUES (?, ?, ?, ?)
+    ");
+
     $ok = $stmt->execute([$name, $email, $phn, $password]);
 
-    // النتيجة
     echo json_encode([
         "status" => $ok,
-        "message" => $ok ? "User inserted successfully" : "Insert failed"
+        "message" => "User created"
     ]);
 
 } catch (PDOException $e) {
 
-    // عرض الخطأ الحقيقي
     echo json_encode([
         "status" => false,
         "error" => $e->getMessage()
