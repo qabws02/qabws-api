@@ -7,27 +7,30 @@ try {
         "mysql:host=mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com;port=12495;dbname=defaultdb;charset=utf8mb4",
         "avnadmin",
         getenv("DB_PASSWORD"),
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]
     );
 
-    $name = $_POST['name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $phn = $_POST['phn'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phn = trim($_POST['phn'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-    if (empty($email) || empty($name)) {
+    // التحقق
+    if ($name == '' || $email == '' || $password == '') {
         echo json_encode([
             "status" => false,
-            "error" => "Missing required fields"
+            "error" => "All fields required"
         ]);
         exit;
     }
 
-    // check duplicate email
+    // منع التكرار
     $check = $conn->prepare("SELECT id_users FROM users WHERE email = ?");
     $check->execute([$email]);
 
-    if ($check->rowCount() > 0) {
+    if ($check->fetch()) {
         echo json_encode([
             "status" => false,
             "error" => "Email already exists"
@@ -35,7 +38,7 @@ try {
         exit;
     }
 
-    // insert
+    // إدخال
     $stmt = $conn->prepare("
         INSERT INTO users (name, email, phn, password)
         VALUES (?, ?, ?, ?)
@@ -44,8 +47,8 @@ try {
     $ok = $stmt->execute([$name, $email, $phn, $password]);
 
     echo json_encode([
-        "status" => $ok,
-        "message" => "User created"
+        "status" => true,
+        "message" => "User created successfully"
     ]);
 
 } catch (PDOException $e) {
