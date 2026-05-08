@@ -6,7 +6,7 @@ $host = "mysql-cc1c3ad-qabwsb02-598d.k.aivencloud.com";
 $port = "12495";
 $dbname = "defaultdb";
 $user = "avnadmin";
-$pass = "qabws"; // استبدلها بكلمة المرور الحقيقية
+$pass = getenv("DB_PASSWORD"); // استبدلها بكلمة المرور الحقيقية
 
 try {
     $conn = new PDO(
