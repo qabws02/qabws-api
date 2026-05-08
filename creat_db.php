@@ -30,4 +30,4 @@ try {
 } catch (PDOException $e) {
     echo json_encode(["status" => "error", "message" => "فشل الاتصال أو الإنشاء: " . $e->getMessage()]);
 }
-<?php
+?>
